@@ -5,34 +5,27 @@
 
 char* checksum(char* message)
 {
-    printf("Checksum not yet implemented.");
+    char mysum[16] = {'\0'},
+    	 currentSubString[17],
+    	 checksum[17];
 
-    return "111";
-    /*
-    int sum = 0;
-    char *mysum = malloc(20),
-    	 *checksum = malloc(3);
-
-    checksum[2] = '\0';
+    checksum[17] = '\0';
+    currentSubString[17] = '\0';
 	int i = 0;
-	for( i ; i <= strlen(message); i++)
+	for( i ; i <= strlen(message); i = i + 16)
 	{
-		sum = sum + (int)message[i];
+		if( i + 16 > 494 ) {
+			strcpy(currentSubString, message[i], 494 - i );
+			int k = 494 - i;
+			for( k; k < 16; k++ ){
+				currentSubString[k] = '\0';
+			}
+		}
+		strcpy(currentSubString, message[i], 16)
+		mysum = mysum + currentSubString;
 	}
-
-
-    char c[20];
-    sprintf(mysum, "%d", sum);
-    i = 0;
-
-    checksum[0] = mysum[strlen(mysum) - 2];
-    checksum[1] = mysum[strlen(mysum) - 1];
-    checksum[2] = '\0';
-
-
-    free(mysum);
-	return checksum;
-    */
+	
+	return mysum;
 }
 
 
