@@ -2,37 +2,40 @@
 #include "debug.h"
 
 #include <stdio.h>
+#include <string.h>
+#include <openssl/md5.h>
 
-char* checksum(char* message)
+char* checksum(char* message, char* myChecksum)
 {
-    printf("Checksum not yet implemented.");
-
-    return "111";
-    /*
-    int sum = 0;
-    char *mysum = malloc(20),
-    	 *checksum = malloc(3);
-
-    checksum[2] = '\0';
-	int i = 0;
-	for( i ; i <= strlen(message); i++)
-	{
-		sum = sum + (int)message[i];
-	}
+    MD5_CTX mdContext;
 
 
-    char c[20];
-    sprintf(mysum, "%d", sum);
-    i = 0;
-
-    checksum[0] = mysum[strlen(mysum) - 2];
-    checksum[1] = mysum[strlen(mysum) - 1];
-    checksum[2] = '\0';
+    MD5_Init (&mdContext);
+    MD5_Update(&mdContext, message, strlen(message));
+    MD5_Final(myChecksum, &mdContext);
 
 
-    free(mysum);
-	return checksum;
-    */
+	//int i = 0;
+//	for( i ; i <= strlen(message); i = i + 16)
+//	{
+//		if( i + 16 > strlen(message) ) {
+//			memcpy(currentSubString, &message[i], strlen( message ) - i );
+//			int k = strlen( message ) - i;
+//			for( k; k < 16; k++ ){
+//				currentSubString[k] = '\0';
+//			}
+//		}
+//        else{
+//		memcpy(currentSubString, &message[i], 16);
+//        }
+//
+//        mysum = (int)mysum + (int)currentSubString;
+#ifdef DEBUG
+    printf("Checksum is: %s\n", myChecksum);
+#endif
+
+	
+	return myChecksum;
 }
 
 
