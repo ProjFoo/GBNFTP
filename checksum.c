@@ -5,7 +5,7 @@
 #include <string.h>
 #include <openssl/md5.h>
 
-char* checksum(char* message, char* myChecksum)
+unsigned char* checksum(char* message, unsigned char* myChecksum)
 {
     MD5_CTX mdContext;
 
