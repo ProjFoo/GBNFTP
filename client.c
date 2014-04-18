@@ -9,6 +9,8 @@ int main(int argc, char *argv[]){
 	    char *fileName, *command, *hostName;
 	    FILE *fr;
 
+	    hostName = malloc(strlen(argv[1]));
+
 	    strcpy(hostName, argv[1]);
 
 	    puts("What do you want to do?");
@@ -57,24 +59,16 @@ int main(int argc, char *argv[]){
 
 
 	    if(requestFile(fileName, p, sockfd, hostName) == 1){
-
+	    	//receiveFile()
 	    }
 
 
 
 
 
-
-
-	    if ((numbytes = sendto(sockfd, argv[2], strlen(argv[2]), 0,
-	             p->ai_addr, p->ai_addrlen)) == -1) {
-	        perror("talker: sendto");
-	        exit(1);
-	    }
 
 	    freeaddrinfo(servinfo);
 
-	    printf("talker: sent %d bytes to %s\n", numbytes, argv[1]);
 	    close(sockfd);
 
 	    return 0;
@@ -88,7 +82,7 @@ int transfer(char packet[513], struct addrinfo *p, int sockfd, char *hostname){
 
 int requestFile(char *fileName, struct addrinfo *p, int sockfd, char *hostname){
 
-	char *incMessage;
+	char incMessage[MAXBUFLEN];
 	int numBytes, valid;
 	char packet[strlen(fileName) + 4];
 
@@ -97,17 +91,26 @@ int requestFile(char *fileName, struct addrinfo *p, int sockfd, char *hostname){
 	struct sockaddr_storage their_addr;
 			socklen_t addr_len;
 
-	if ((numBytes = sendto(sockfd, packet, sizeof(packet), 0,
+	strcpy(packet, "GET,");
+	strcat(packet, fileName);
+
+	printf("Message sent: %s\n", packet);
+
+	if ((numBytes = sendto(sockfd, packet, strlen(packet), 0,
 		             p->ai_addr, p->ai_addrlen)) == -1) {
 		        perror("talker: sendto");
 		        exit(1);
 		    }
 
-	if ((numBytes = recvfrom(sockfd, incMessage, strlen(incMessage) , 0,
+	puts("Waiting to Receive...");
+	addr_len = sizeof their_addr;
+
+	if ((numBytes = recvfrom(sockfd, incMessage, MAXBUFLEN , 0,
 	    		(struct sockaddr *)&their_addr, &addr_len)) == -1) {
 	    		perror("recvfrom");
 	    		puts("The packet appears to have been lost.");
 	    	}
+
 
 	if(strcmp(incMessage, "invalid") == 0){
 		puts("File does not exist.");

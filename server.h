@@ -17,12 +17,13 @@
 int receive(int numBytes, char *buf, struct addrinfo *p, int sockfd);
 void writeToFile(FILE *fr, char *toAdd, int numbytes, int sizeOfBuf);
 char* checkForGet(char *packetIn);
-void replyWithInvalidFile(struct addrinfo *p, int sockfd);
+void replyWithInvalidFile(struct addrinfo *p, int sockfd, struct sockaddr_storage their_addr, socklen_t addr_len);
 
 
 char* makeChecksum(char* message);
 char * damage(char **p);
 int gremlin(float damaged, float lost, char ** packet);
+int checkIfFileExist(char *buf, char **fileName);
 
 float damaged = 0;
 float lost = 0;
