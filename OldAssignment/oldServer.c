@@ -2,39 +2,7 @@
 ** listener.c -- a datagram sockets "server" demo
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <sys/time.h>
-#include <time.h>
-
-#define MAXBUFLEN 129
-int receive(int numBytes, char *buf, struct addrinfo *p, int sockfd);
-void writeToFile(FILE *fr, char *toAdd, int numbytes, int sizeOfBuf);
-char* makeChecksum(char* message);
-char * damage(char **p);
-int gremlin(float damaged, float lost, char ** packet);
-
-float damaged = 0;
-float lost = 0;
-
-/*
-Call with: PORT prob prob
-*/
-void *get_in_addr(struct sockaddr *sa)
-{
-    if (sa->sa_family == AF_INET) {
-        return &(((struct sockaddr_in*)sa)->sin_addr);
-    }
-    return &(((struct sockaddr_in6*)sa)->sin6_addr);
-}
+#include "server.h"
 
 
 int main(int argc, char *argv[])
@@ -110,8 +78,8 @@ int main(int argc, char *argv[])
 		buf = malloc(MAXBUFLEN);
 
 		//fill buf will nul terminating strings
-		int i = 0;
-		for(i; i < MAXBUFLEN; i++){
+		int i;
+		for(i = 0; i < MAXBUFLEN; i++){
 			buf[i] = '\0';
 		}
 
@@ -212,7 +180,7 @@ int receive(int numbytes, char *buf, struct addrinfo *p, int sockfd)
 					{
 
 						int i = 0;
-						for(i; i < sizeOfBuf - 3; i++){
+						for(i = 0; i < sizeOfBuf - 3; i++){
 							message[i] = '\0';
 						}
 						memcpy(message, buf + 4, sizeOfBuf - 4);
@@ -304,7 +272,7 @@ int receive(int numbytes, char *buf, struct addrinfo *p, int sockfd)
 					}
 
 					int i = 0;
-					for(i; i < sizeOfBuf - 4; i++){
+					for(i= 0; i < sizeOfBuf - 4; i++){
 						buf[i] = '\0';
 					}
 
@@ -321,7 +289,7 @@ int receive(int numbytes, char *buf, struct addrinfo *p, int sockfd)
 			}
 
 		}
-
+	return 0;
 }
 
 int gremlin(float damaged, float lost, char ** packet)
@@ -461,7 +429,7 @@ char* makeChecksum(char* message)
 
     checksum[2] = '\0';
 	int i = 0;
-	for( i ; i <= strlen(message); i++)
+	for( i = 0; i <= strlen(message); i++)
 	{
 		sum = sum + (int)message[i];
 	}

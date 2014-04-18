@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
 
 		int i = 0;
 
-		for(i;  i < MESSAGESIZE + 1; i++)
+		for(i = 0;  i < MESSAGESIZE + 1; i++)
 		 {
 		    message[i] = '\0';
 		 }
@@ -258,7 +258,7 @@ char* makeChecksum(char* message)
 
     checksum[2] = '\0';
 	int i = 0;
-	for( i ; i <= strlen(message); i++)
+	for( i = 0; i <= strlen(message); i++)
 	{
 		sum = sum + (int)message[i];
 	}
