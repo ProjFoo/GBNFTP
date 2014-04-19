@@ -3,6 +3,11 @@
 */
 
 #include "server.h"
+#define PACKETSIZE 513
+
+char currPacket[PACKETSIZE];
+
+void buildPacket(char *seqNum, char *checkSum, char *acknak, char *message);
 
 
 int main(void)
@@ -15,7 +20,6 @@ int main(void)
 	    char buf[MAXBUFLEN];
 	    socklen_t addr_len;
 	    char s[INET6_ADDRSTRLEN];
-
 	    memset(&hints, 0, sizeof hints);
 	    hints.ai_family = AF_UNSPEC; // set to AF_INET to force IPv4
 	    hints.ai_socktype = SOCK_DGRAM;
@@ -137,4 +141,19 @@ char* checkForGet(char *packetIn){
 	splitString = strsep(&tempPacket, ",");
 
 	return splitString;
+}
+
+void buildPacket(char *seqNum, char *checkSum, char *acknak, char *message)
+{
+	puts("Zeroing out current packet before building.");
+	memset(currPacket, 0, sizeof(currPacket));
+	puts("Copying sequence number into packet");
+	strcpy(currPacket, seqNum);
+	puts("Concatenating Checksum into packet");
+	strcat(currPacket, checkSum);
+	puts("Concatenating acknak into packet");
+	strcat(currPacket, acknak);
+	puts("Concatenating Message into packet");
+	strcat(currPacket, message);
+	puts("Packet built and ready for deployment SIR!");
 }
