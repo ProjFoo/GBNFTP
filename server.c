@@ -72,8 +72,9 @@ int main(void)
 				puts("Got GET successfully.");
 
 				if(checkIfFileExist(buf, &fileName) == 1){
-
-					//sendFile(fileName)
+					replyWithValidFile(p, sockfd, their_addr, addr_len);
+					puts("Valid file message sent.");
+					sendFile(fileName);
 
 				}
 				else{
@@ -89,10 +90,42 @@ int main(void)
 	    return 0;
 }
 
+sendFile(char *fileName){
+	FILE *fr;
+	fr = fopen(fileName, "r");
+	char message[MESSAGESIZE + 1];
+	char getChar;
+
+	while(getChar != EOF){
+
+		memset(message, 0, MESSAGESIZE + 1);
+
+		int messageLength = 0;
+		while( messageLength < MESSAGESIZE && (getChar = fgetc(fr)) != EOF )
+		  {
+			message[messageLength] = getChar;
+			messageLength++;
+		  }
+
+	}
+	fclose(fr);
+}
+
 void replyWithInvalidFile(struct addrinfo *p, int sockfd, struct sockaddr_storage their_addr, socklen_t addr_len){
 
 	int numBytes;
 	char message[8] = "invalid";
+
+	if ((numBytes = sendto(sockfd, message, strlen(message), 0,
+			(struct sockaddr *)&their_addr, addr_len)) == -1) {
+				perror("talker: sendto");
+	}
+}
+
+void replyWithValidFile(struct addrinfo *p, int sockfd, struct sockaddr_storage their_addr, socklen_t addr_len){
+
+	int numBytes;
+	char message[8] = "valid";
 
 	if ((numBytes = sendto(sockfd, message, strlen(message), 0,
 			(struct sockaddr *)&their_addr, addr_len)) == -1) {
@@ -118,6 +151,10 @@ int checkIfFileExist(char *buf, char **fileName){
 	else{
 		fclose(fr);
 	}
+
+	*fileName = &buf[0];
+
+
 
 	return valid;
 }

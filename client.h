@@ -16,9 +16,11 @@
 #include <netdb.h>
 
 #define SERVERPORT "10030"
-#define MAXBUFLEN 100
+#define MAXBUFLEN 513
 
 int main(int argc, char *argv[]);
 int transfer(char packet[513], struct addrinfo *p, int sockfd, char *hostname);
 int requestFile(char *fileName, struct addrinfo *p, int sockfd, char *hostname);
-//void receiveFile(char packet[513], struct addrinfo *p, int sockfd, char *hostname);
+char * getCommand();
+void receiveFile(struct addrinfo *p, int sockfd, char *fileName);
+char *getMessage(char incMessage[513]);

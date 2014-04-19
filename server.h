@@ -11,14 +11,14 @@
 
 #define MYPORT "10030"    // the port users will be connecting to
 
-#define MAXBUFLEN 100
-
+#define MAXBUFLEN 513
+#define MESSAGESIZE 494
 
 int receive(int numBytes, char *buf, struct addrinfo *p, int sockfd);
 void writeToFile(FILE *fr, char *toAdd, int numbytes, int sizeOfBuf);
 char* checkForGet(char *packetIn);
 void replyWithInvalidFile(struct addrinfo *p, int sockfd, struct sockaddr_storage their_addr, socklen_t addr_len);
-
+void replyWithValidFile(struct addrinfo *p, int sockfd, struct sockaddr_storage their_addr, socklen_t addr_len);
 
 char* makeChecksum(char* message);
 char * damage(char **p);
