@@ -105,7 +105,7 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 			//Do GBN stuff
 			//Do SeqNum stuff
 
-			printf("Message receieved: %s", message);
+			printf("\nSeqNum: %c%c\n\n", incMessage[0], incMessage[1]);
 
 			//if all success, print to file
 			fprintf(fr, "%s", message);
@@ -126,7 +126,7 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 char *getMessage(char incMessage[MAXBUFLEN]){
 	char *message;
 
-	int i = 0;
+	int i;
 	for(i = HEADERSIZE; i < MAXBUFLEN - 1;i++){
 		message[i - HEADERSIZE] = incMessage[i];
 	}

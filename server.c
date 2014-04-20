@@ -4,8 +4,17 @@
 
 #include "server.h"
 #define PACKETSIZE 513
+#define WINDOWSIZE 16
+#define MODULUS 32
 
 char currPacket[PACKETSIZE];
+char packetBuffer[MODULUS][PACKETSIZE];
+
+int isSent = 1;
+int seqNum = 32
+		;
+int packetsSent = -1;
+int base = 0;
 
 void buildPacket(char *seqNum, char *checkSum, char *acknak, char *message);
 
@@ -100,43 +109,65 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd, struct sockaddr_st
 	char message[MESSAGESIZE + 1];
 	char getChar;
 	int numBytes;
-	char *acknak, *checkSum, *seqNum;
+	char *acknak, *checkSum;
+
 
 	acknak = "1";
-	checkSum = "111";
-	seqNum = "11";
+	checkSum = "11";
+	
+	char seqNumOut[2];
 	//acknak = getacknak();
 	//checkSum = getCheckSum();
 	//seqNum = getSeqNum();
-
+	
 	while(getChar != EOF){
 
-		memset(message, 0, MESSAGESIZE + 1);
+		puts("Beginning GBN");		
+		if (isSent != 0)
+		{
+			isSent = 1;
+			int i = 0;
+			for (i = 0; i < WINDOWSIZE; i++)
+			{
+				memset(message, 0, MESSAGESIZE + 1);
 
-		int messageLength = 0;
-		while( messageLength < MESSAGESIZE && (getChar = fgetc(fr)) != EOF )
-		  {
-			message[messageLength] = getChar;
-			messageLength++;
-		  }
+				int messageLength = 0;
+				while( messageLength < MESSAGESIZE && (getChar = fgetc(fr)) != EOF )
+				  {
+					message[messageLength] = getChar;
+					messageLength++;
+				  }
+				puts("Incrementing sequence#");
+				int seqNumMod = seqNum % MODULUS;			
+				puts("Casting sequence# to char array");			
+				sprintf(seqNumOut, "%ld", seqNumMod);
+				if (seqNumMod < 10)
+				{
+					seqNumOut[0] = '0';
+					seqNumOut[1] = (char)(((int)'0')+seqNumMod);
+				}				
+				seqNum++;
+				puts("Building packet");
+				buildPacket(seqNumOut, checkSum, acknak, message);
+				strcpy(packetBuffer[seqNumMod], currPacket);
+				//printf("%s", packetBuffer[seqNumMod]);
+				//packetBuffer[seqNumMod] = currPacket;
+				if ((numBytes = sendto(sockfd, currPacket, strlen(currPacket), 0,
+						(struct sockaddr *)&their_addr, addr_len)) == -1) {
+							perror("talker: sendto");
+				}
+			}
 
-
-		buildPacket(seqNum, checkSum, acknak, message);
-
-		puts("Packet sent...Waiting for response...");
-
-		if ((numBytes = sendto(sockfd, currPacket, strlen(currPacket), 0,
-				(struct sockaddr *)&their_addr, addr_len)) == -1) {
-					perror("talker: sendto");
+			puts("Packet sent...Waiting for response...");
 		}
-
+				
 		//put in receive here
 
 		puts("Response received...");
 	}
 
 	memset(message, 0, MESSAGESIZE + 1);
-	buildPacket(seqNum, checkSum, acknak, message);
+	buildPacket(seqNumOut, checkSum, acknak, message);
 
 	puts("Final packet sent...Waiting for response...");
 
@@ -173,17 +204,19 @@ void replyWithValidFile(struct addrinfo *p, int sockfd, struct sockaddr_storage 
 
 void buildPacket(char *seqNum, char *checkSum, char *acknak, char *message)
 {
-	puts("\nZeroing out current packet before building.");
+	//puts("\nZeroing out current packet before building.");
 	memset(currPacket, 0, sizeof(currPacket));
-	puts("Copying sequence number into packet");
+	//puts("Copying sequence number into packet");
+	//printf("SeqNumOutBuild = %s\n", seqNum);
 	strcpy(currPacket, seqNum);
-	puts("Concatenating Checksum into packet");
+	//puts("Concatenating Checksum into packet");
 	strcat(currPacket, checkSum);
-	puts("Concatenating acknak into packet");
+	//puts("Concatenating acknak into packet");
 	strcat(currPacket, acknak);
-	puts("Concatenating Message into packet");
+	//puts("Concatenating Message into packet");
 	strcat(currPacket, message);
-	puts("Packet built and ready for transfer!\n");
+	//printf("Message = %s\n", message);
+	//puts("Packet built and ready for transfer!\n");
 }
 
 int checkIfFileExist(char *buf, char **fileName){
@@ -227,19 +260,4 @@ char* checkForGet(char *packetIn){
 	splitString = strsep(&tempPacket, ",");
 
 	return splitString;
-}
-
-void buildPacket(char *seqNum, char *checkSum, char *acknak, char *message)
-{
-	puts("Zeroing out current packet before building.");
-	memset(currPacket, 0, sizeof(currPacket));
-	puts("Copying sequence number into packet");
-	strcpy(currPacket, seqNum);
-	puts("Concatenating Checksum into packet");
-	strcat(currPacket, checkSum);
-	puts("Concatenating acknak into packet");
-	strcat(currPacket, acknak);
-	puts("Concatenating Message into packet");
-	strcat(currPacket, message);
-	puts("Packet built and ready for deployment SIR!");
 }
