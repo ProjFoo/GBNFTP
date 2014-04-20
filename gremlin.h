@@ -2,5 +2,6 @@
 #define GREMLIN_H_INCLUDED
 
 int gremlin(char* message, int damage, int lost, int delay, int delaytime);
+char * damage(char **p);
 
 #endif
