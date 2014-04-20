@@ -66,15 +66,16 @@ int main(int argc, char *argv[]){
 
 void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 
-	int numBytes, MESSAGELENGTH;
-	MESSAGELENGTH = 494;
-	char incMessage[513];
+	int numBytes;
+
+	char incMessage[MAXBUFLEN];
 	char message [MESSAGELENGTH];
 	size_t len;
 
 	strsep(&fileName, ",");
 
-	FILE *fr = fopen(&fileName[0], "w");
+	//FILE *fr = fopen(&fileName[0], "w");
+	FILE *fr = fopen("test.txt", "w");
 
 	struct sockaddr_storage their_addr;
 				socklen_t addr_len;
@@ -84,34 +85,50 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 	do{
 
 		memset(incMessage, 0, MAXBUFLEN);
-
 		memset(message, 0, MESSAGELENGTH);
 
 
 		puts("Waiting for file data...");
 
 		if ((numBytes = recvfrom(sockfd, incMessage, MAXBUFLEN , 0,
-					(struct sockaddr *)&their_addr, &addr_len)) == -1) {
-					perror("recvfrom");
-					puts("The packet appears to have been lost.");
-				}
-
-		strcpy(message, incMessage);
-		fprintf(fr, "%s", message);
+			(struct sockaddr *)&their_addr, &addr_len)) == -1) {
+			perror("recvfrom");
+			puts("The packet appears to have been lost.");
+		}
 
 		len = strlen(incMessage);
-		}while(len > 18);
+		puts("Data received! Saving to file...");
+
+		if(len > HEADERSIZE){
+			strncpy(message, incMessage + HEADERSIZE, strlen(incMessage) - HEADERSIZE);
+			//Do checksum stuff
+			//Do GBN stuff
+			//Do SeqNum stuff
+
+			printf("Message receieved: %s", message);
+
+			//if all success, print to file
+			fprintf(fr, "%s", message);
+		}
+
+
+
+
+
+		}while(len > HEADERSIZE);
+
+	puts("Finished receiving file. Saving and closing.");
 
 	fclose(fr);
 
 }
 
-char *getMessage(char incMessage[513]){
+char *getMessage(char incMessage[MAXBUFLEN]){
 	char *message;
-	int HEADER = 18;
+
 	int i = 0;
-	for(i = 18; i < 512;i++){
-		message[i - HEADER] = incMessage[i];
+	for(i = HEADERSIZE; i < MAXBUFLEN - 1;i++){
+		message[i - HEADERSIZE] = incMessage[i];
 	}
 
 

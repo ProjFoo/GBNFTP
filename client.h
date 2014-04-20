@@ -17,6 +17,8 @@
 
 #define SERVERPORT "10030"
 #define MAXBUFLEN 513
+#define MESSAGELENGTH 507
+#define HEADERSIZE 5
 
 int main(int argc, char *argv[]);
 int transfer(char packet[513], struct addrinfo *p, int sockfd, char *hostname);
