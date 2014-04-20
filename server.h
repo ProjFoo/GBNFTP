@@ -8,6 +8,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include "gremlin.h";
 
 #define MYPORT "10030"    // the port users will be connecting to
 

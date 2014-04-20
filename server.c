@@ -99,7 +99,7 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd, struct sockaddr_st
 	char *acknak, *checkSum, *seqNum;
 
 	acknak = "1";
-	checkSum = "111";
+	checkSum = "11";
 	seqNum = "11";
 	//acknak = getacknak();
 	//checkSum = getCheckSum();
@@ -117,13 +117,17 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd, struct sockaddr_st
 		  }
 
 
-		buildPacket(seqNum, checkSum, acknak, message);
-
 		puts("Packet sent...Waiting for response...");
 
-		if ((numBytes = sendto(sockfd, currPacket, strlen(currPacket), 0,
-				(struct sockaddr *)&their_addr, addr_len)) == -1) {
-					perror("talker: sendto");
+		if(gremlin(0.2, 0.2, message) == 1){
+			buildPacket(seqNum, checkSum, acknak, message);
+			if ((numBytes = sendto(sockfd, currPacket, strlen(currPacket), 0,
+					(struct sockaddr *)&their_addr, addr_len)) == -1) {
+						perror("talker: sendto");
+			}
+		}else{
+			//Move to the next packet. Simulates a dropped packet.
+
 		}
 
 		//put in receive here

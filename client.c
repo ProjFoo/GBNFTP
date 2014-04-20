@@ -55,7 +55,6 @@ int main(int argc, char *argv[]){
 	    	puts("File does not exist.");
 	    }
 
-
 	    freeaddrinfo(servinfo);
 
 	    close(sockfd);
@@ -70,6 +69,9 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 
 	char incMessage[MAXBUFLEN];
 	char message [MESSAGELENGTH];
+	char seqNum [2];
+	char ackNack [1];
+	char checksum [2];
 	size_t len;
 
 	strsep(&fileName, ",");
@@ -101,11 +103,13 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 
 		if(len > HEADERSIZE){
 			strncpy(message, incMessage + HEADERSIZE, strlen(incMessage) - HEADERSIZE);
+			strncpy(seqNum, incMessage, 2);
+			strncpy(ackNack, incMessage + 5, 1);
 			//Do checksum stuff
 			//Do GBN stuff
 			//Do SeqNum stuff
 
-			printf("Message receieved: %s", message);
+			printf("\nSeqNum: %c%c\n\n", incMessage[0], incMessage[1]);
 
 			//if all success, print to file
 			fprintf(fr, "%s", message);
@@ -126,7 +130,7 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 char *getMessage(char incMessage[MAXBUFLEN]){
 	char *message;
 
-	int i = 0;
+	int i;
 	for(i = HEADERSIZE; i < MAXBUFLEN - 1;i++){
 		message[i - HEADERSIZE] = incMessage[i];
 	}
