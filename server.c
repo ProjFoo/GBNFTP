@@ -76,13 +76,14 @@ int main(void)
 				puts("Got GET successfully.");
 
 				if(checkIfFileExist(buf, &fileName) == 1){
-
-					//sendFile(fileName)
+					replyWithValidFile(p, sockfd, their_addr, addr_len);
+					puts("Valid file message sent.");
+					sendFile(fileName, p, sockfd, their_addr, addr_len);
 
 				}
 				else{
 					replyWithInvalidFile(p, sockfd, their_addr, addr_len);
-					puts("Invalid file response sent.");
+					puts("Invalid file response sent.\n\n");
 				}
 
 			}
@@ -91,6 +92,61 @@ int main(void)
 	    close(sockfd);
 
 	    return 0;
+}
+
+void sendFile(char *fileName, struct addrinfo *p, int sockfd, struct sockaddr_storage their_addr, socklen_t addr_len){
+	FILE *fr;
+	fr = fopen(fileName, "r");
+	char message[MESSAGESIZE + 1];
+	char getChar;
+	int numBytes;
+	char *acknak, *checkSum, *seqNum;
+
+	acknak = "1";
+	checkSum = "111";
+	seqNum = "11";
+	//acknak = getacknak();
+	//checkSum = getCheckSum();
+	//seqNum = getSeqNum();
+
+	while(getChar != EOF){
+
+		memset(message, 0, MESSAGESIZE + 1);
+
+		int messageLength = 0;
+		while( messageLength < MESSAGESIZE && (getChar = fgetc(fr)) != EOF )
+		  {
+			message[messageLength] = getChar;
+			messageLength++;
+		  }
+
+
+		buildPacket(seqNum, checkSum, acknak, message);
+
+		puts("Packet sent...Waiting for response...");
+
+		if ((numBytes = sendto(sockfd, currPacket, strlen(currPacket), 0,
+				(struct sockaddr *)&their_addr, addr_len)) == -1) {
+					perror("talker: sendto");
+		}
+
+		//put in receive here
+
+		puts("Response received...");
+	}
+
+	memset(message, 0, MESSAGESIZE + 1);
+	buildPacket(seqNum, checkSum, acknak, message);
+
+	puts("Final packet sent...Waiting for response...");
+
+	if ((numBytes = sendto(sockfd, currPacket, strlen(currPacket), 0,
+			(struct sockaddr *)&their_addr, addr_len)) == -1) {
+				perror("talker: sendto");
+	}
+
+	puts("File transfer complete!");
+	fclose(fr);
 }
 
 void replyWithInvalidFile(struct addrinfo *p, int sockfd, struct sockaddr_storage their_addr, socklen_t addr_len){
@@ -102,6 +158,32 @@ void replyWithInvalidFile(struct addrinfo *p, int sockfd, struct sockaddr_storag
 			(struct sockaddr *)&their_addr, addr_len)) == -1) {
 				perror("talker: sendto");
 	}
+}
+
+void replyWithValidFile(struct addrinfo *p, int sockfd, struct sockaddr_storage their_addr, socklen_t addr_len){
+
+	int numBytes;
+	char message[8] = "valid";
+
+	if ((numBytes = sendto(sockfd, message, strlen(message), 0,
+			(struct sockaddr *)&their_addr, addr_len)) == -1) {
+				perror("talker: sendto");
+	}
+}
+
+void buildPacket(char *seqNum, char *checkSum, char *acknak, char *message)
+{
+	puts("\nZeroing out current packet before building.");
+	memset(currPacket, 0, sizeof(currPacket));
+	puts("Copying sequence number into packet");
+	strcpy(currPacket, seqNum);
+	puts("Concatenating Checksum into packet");
+	strcat(currPacket, checkSum);
+	puts("Concatenating acknak into packet");
+	strcat(currPacket, acknak);
+	puts("Concatenating Message into packet");
+	strcat(currPacket, message);
+	puts("Packet built and ready for transfer!\n");
 }
 
 int checkIfFileExist(char *buf, char **fileName){
@@ -122,6 +204,10 @@ int checkIfFileExist(char *buf, char **fileName){
 	else{
 		fclose(fr);
 	}
+
+	*fileName = &buf[0];
+
+
 
 	return valid;
 }
