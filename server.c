@@ -11,10 +11,10 @@ char currPacket[PACKETSIZE];
 char packetBuffer[MODULUS][PACKETSIZE];
 
 int isSent = 1;
-int seqNum = 32
-		;
+int seqNum = MODULUS;
 int packetsSent = -1;
 int base = 0;
+int expectedSeqNum = 0;
 
 void buildPacket(char *seqNum, char *checkSum, char *acknak, char *message);
 
@@ -157,8 +157,56 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd, struct sockaddr_st
 							perror("talker: sendto");
 				}
 			}
-
 			puts("Packet sent...Waiting for response...");
+			char incmessage[5];
+			memset(incmessage, 0, sizeof(incmessage));
+			
+			if ((numBytes = recvfrom(sockfd, incmessage, 10 , 0,
+			    		(struct sockaddr *)&their_addr, &addr_len)) == -1) {
+			    		perror("recvfrom");
+			    		puts("The packet appears to have been lost.");
+			    	}
+			printf("Incmessage = %s\n", incmessage);
+			char incSeqNum[2];
+			char incAckNak;
+			incAckNak = incmessage[5];
+			incSeqNum[0] = incmessage[0];
+			incSeqNum[1] = incmessage[1];
+			int incSeqNumInt;
+			int base = 0;
+			incSeqNumInt = atoi(incSeqNum);
+			
+			if (incAckNak == ACK && expectedSeqNum == incSeqNumInt)
+			{
+				expectedSeqNum++;
+				base++;
+				if (expectedSeqNum >= 32){
+					expectedSeqNum = 0;
+				}
+				if (base >= WINDOWSIZE)
+				{
+					base = 0;
+				}
+			}
+			else if (incAckNak == ACK && expectedSeqNum != incSeqNumInt)
+			{
+				int i;
+				int j = incSeqNumInt;
+				for(i = base; i < WINDOWSIZE; i++)
+				{
+					if ((numBytes = sendto(sockfd, packetBuffer[j], strlen(packetBuffer[j]), 0,
+							(struct sockaddr *)&their_addr, addr_len)) == -1) {
+								perror("talker: sendto");
+					}
+					j++;
+					j = j % MODULUS;
+				}
+			}
+			else if (incAckNak == NAK)
+			{
+				
+			}
+			
 		}
 				
 		//put in receive here

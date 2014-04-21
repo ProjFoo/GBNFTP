@@ -1,6 +1,5 @@
 #include "client.h"
 
-
 int main(int argc, char *argv[]){
 	int sockfd;
 	    struct addrinfo hints, *servinfo, *p;
@@ -106,9 +105,46 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 			//Do SeqNum stuff
 
 			printf("\nSeqNum: %c%c\n\n", incMessage[0], incMessage[1]);
+			char tempSeqNum[2];
+			tempSeqNum[0] = incMessage[0];
+			tempSeqNum[1] = incMessage[1];			
+			int incSeqNum = atoi(tempSeqNum);
+			printf("IncSeqNum = %d\n", incSeqNum);
+			int expectedSeqNum = seqNum % MODULUS;
 
+			char acknak[1];
+			char seqNumOut[2];
+			
+			char checksum[] = "11";
+			
+			if (expectedSeqNum == incSeqNum)
+			{
+				acknak[0] = ACK;
+				sprintf(seqNumOut, "%ld", expectedSeqNum+1);
+				seqNum++;
+				fprintf(fr, "%s", message);
+			}
+			
+			else if (0) // If checksum fails
+			{
+				acknak[0] = NAK;
+				sprintf(seqNumOut, "%ld", expectedSeqNum);
+			}
+			
+			else
+			{
+				acknak[0] = ACK;
+				sprintf(seqNumOut, "%ld", expectedSeqNum);
+			}
+			buildPacket(seqNumOut, checksum, acknak);
+			
+			if ((numBytes = sendto(sockfd, currPacket, strlen(currPacket), 0,
+										(struct sockaddr *)&their_addr, addr_len)) == -1) {
+											perror("talker: sendto");
+								}
+			
 			//if all success, print to file
-			fprintf(fr, "%s", message);
+			//fprintf(fr, "%s", message);
 		}
 
 
@@ -211,4 +247,17 @@ int requestFile(char *fileName, struct addrinfo *p, int sockfd, char *hostname){
 }
 
 
-
+void buildPacket(char *seqNum, char *checkSum, char *acknak)
+{
+	//puts("\nZeroing out current packet before building.");
+	memset(currPacket, 0, sizeof(currPacket));
+	//puts("Copying sequence number into packet");
+	//printf("SeqNumOutBuild = %s\n", seqNum);
+	strcpy(currPacket, seqNum);
+	//puts("Concatenating Checksum into packet");
+	strcat(currPacket, checkSum);
+	//puts("Concatenating acknak into packet");
+	strcat(currPacket, acknak);
+	//printf("Message = %s\n", message);
+	//puts("Packet built and ready for transfer!\n");
+}

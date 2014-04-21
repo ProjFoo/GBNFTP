@@ -14,6 +14,8 @@
 #define MAXBUFLEN 513
 #define MESSAGESIZE 507
 #define HEADERSIZE 5
+#define ACK '1'
+#define NAK '0'
 
 int receive(int numBytes, char *buf, struct addrinfo *p, int sockfd);
 void writeToFile(FILE *fr, char *toAdd, int numbytes, int sizeOfBuf);
