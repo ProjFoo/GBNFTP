@@ -121,6 +121,12 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 			{
 				acknak[0] = ACK;
 				sprintf(seqNumOut, "%ld", expectedSeqNum+1);
+				if (expectedSeqNum < 9)
+				{
+					seqNumOut[1] = seqNumOut[0];
+					seqNumOut[0] = '0';
+				}
+				printf("SeqNumOut = %s\n", seqNumOut);
 				seqNum++;
 				fprintf(fr, "%s", message);
 			}
@@ -129,12 +135,23 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 			{
 				acknak[0] = NAK;
 				sprintf(seqNumOut, "%ld", expectedSeqNum);
+				if (expectedSeqNum < 10)
+				{
+					seqNumOut[1] = seqNumOut[0];
+					seqNumOut[0] = '0';
+				}
 			}
 			
 			else
 			{
 				acknak[0] = ACK;
 				sprintf(seqNumOut, "%ld", expectedSeqNum);
+				if (expectedSeqNum < 10)
+				{
+					seqNumOut[1] = seqNumOut[0];
+					seqNumOut[0] = '0';
+				}
+				printf("SeqNumOutOops = %s\n", seqNumOut);
 			}
 			buildPacket(seqNumOut, checksum, acknak);
 			
