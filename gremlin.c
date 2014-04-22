@@ -5,6 +5,10 @@
 
 int gremlin(char ** message, float damaged, float lost, float delay, int delaytime, unsigned int r) {
 
+
+    final int   PACKET_LOST = 0,
+                PACKET_PASSED = 1,
+                PACKET_DELAYED = 2;
 #ifdef DEBUG
     printf("Message: %s\n"
            "Damage %: %i\n"
@@ -15,7 +19,7 @@ int gremlin(char ** message, float damaged, float lost, float delay, int delayti
 #endif
 
 	int returnNum;
-	int sizeOfPacket = strlen(*packet);
+	int sizeOfPacket = strlen(*message);
 	int s = r % 100;
 	int p_dam = damaged * 100,
 		p_lost = lost * 100,
@@ -25,31 +29,31 @@ int gremlin(char ** message, float damaged, float lost, float delay, int delayti
 	if (r <= p_dam)
 	{
 
-		damage(packet);
+		damage(message, r);
 
-		returnNum = 1;
+		returnNum = PACKET_PASSED;
 	}
 	else if (r <= p_dam + p_lost)
 	{
 
-		returnNum = 0;
+		returnNum = PACKET_LOST;
 
 	}
 	else if (r <= p_dam + p_lost + p_delay)
 	{
-	    delay(message, delaytime);
-	    returnNum = 2;
+	    returnNum = PACKET_DELAYED;
 	}
 	else {
-		returnNum = 1;
+		returnNum = PACKET_PASSED;
 	}
 
 	return returnNum;
 }
 
-char * damage(char **p)
+char * damage(char **p, unsigned int r)
 {
 
+	srand(r);
 	const int ONE = 7,
 			TWO = 2,
 			THREE = 1;
