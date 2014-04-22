@@ -81,6 +81,7 @@ int main(void)
 
 
 			printf("listener: packet contains \"%s\"\n", buf);
+
 			if(strcmp("GET", checkForGet(buf)) == 0){
 				puts("Got GET successfully.");
 
@@ -152,6 +153,7 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd, struct sockaddr_st
 				strcpy(packetBuffer[seqNumMod], currPacket);
 				//printf("%s", packetBuffer[seqNumMod]);
 				//packetBuffer[seqNumMod] = currPacket;
+
 				if ((numBytes = sendto(sockfd, currPacket, strlen(currPacket), 0,
 						(struct sockaddr *)&their_addr, addr_len)) == -1) {
 							perror("talker: sendto");

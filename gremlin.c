@@ -1,21 +1,21 @@
 #include "gremlin.h"
 #include "debug.h"
+#include <string.h>
+#include <stdlib.h>
 
 #include <stdio.h>
 
 int gremlin(char ** message, float damaged, float lost, float delay, int delaytime, unsigned int r) {
 
 
-    final int   PACKET_LOST = 0,
-                PACKET_PASSED = 1,
-                PACKET_DELAYED = 2;
+
 #ifdef DEBUG
     printf("Message: %s\n"
            "Damage %: %i\n"
            "Loss %: %i\n"
            "Delay %: %i\n"
            "Delay Time: %i ms"
-           , message, damage, lost, delay, delaytime);
+           , message, damaged, lost, delay, delaytime);
 #endif
 
 	int returnNum;
@@ -60,7 +60,7 @@ char * damage(char **p, unsigned int r)
 
 	char *msg = (*p);
 	char corruptor = '0';
-	int r = rand() % 10;
+	r = rand() % 10;
 
 
 
