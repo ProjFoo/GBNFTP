@@ -12,13 +12,15 @@ while(whatever) //main sending loop
 {
 
     {   //this can literally be in any spot of the main loop. start or end doesn't matter.
-        gettimeofday(tv_now);
-        time_now = tv_now.tv_sec * 1000000 + tv_now.tv_usec;
-        time_then = t_dequeue(my_tqueue);
-        if( time_now >= time_then + delaytime * 1000 ) //delaytime is in msec, time_then usec
-        {
-            char* latepacket = p_dequeue(my_pqueue);
-            send(packet);
+        if( !p_empty(my_pqueue) ) {
+            gettimeofday(tv_now);
+            time_now = tv_now.tv_sec * 1000000 + tv_now.tv_usec;
+            time_then = t_dequeue(my_tqueue);
+            if( time_now >= time_then + delaytime * 1000 ) //delaytime is in msec, time_then usec
+            {
+                char* latepacket = p_dequeue(my_pqueue);
+                send(packet);
+            }
         }
     }
 

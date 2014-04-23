@@ -43,3 +43,14 @@ char* p_dequeue(pqueue *p)
 
     return r;
 }
+
+int p_empty(queue *p){
+    if (p->count <= 0)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}

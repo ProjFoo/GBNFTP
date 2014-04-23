@@ -39,3 +39,14 @@ unsigned long int t_dequeue(tqueue *p)
 
     return x;
 }
+
+int t_empty(queue *p){
+    if (p->count <= 0)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
