@@ -242,7 +242,10 @@ void reSend(int numBytes, int sockfd, struct sockaddr_storage their_addr, sockle
 					incSeqNumInt = atoi(incSeqNum);
 					printf("IncAckNak = %s\n ExpectedSeqNum = %d\n IncSeqNumInt = %d\n", incmessage, expectedSeqNum, incSeqNumInt);
 					
-					if (incAckNak == ACK && expectedSeqNum == incSeqNumInt)
+					if (incAckNak == ACK && 
+							((expectedSeqNum == incSeqNumInt) //Received Expected ACK
+									|| (expectedSeqNum < incSeqNumInt) // Received Cumulative ACK
+									|| ((expectedSeqNum - WINDOWSIZE) > incSeqNumInt))) //Received Overlapped Cumulative ACK
 					{
 						puts("Case 1 = Everything is fine, nothing is wrong");
 						expectedSeqNum++;
