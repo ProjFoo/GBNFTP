@@ -5,7 +5,7 @@
 #include <string.h>
 #include <openssl/md5.h>
 
-unsigned char* checksum(char* message, unsigned char* myChecksum)
+char* checksum(char* message, char* myChecksum)
 {
 	
 	//if we're using a sixteen byte checksum, MD5 it.
@@ -18,9 +18,9 @@ unsigned char* checksum(char* message, unsigned char* myChecksum)
     MD5_Final(myChecksum, &mdContext);
 #else
     int sum = 0;
-    char *mysum = malloc(20),
-
+    char mysum[20];
     myChecksum[2] = '\0';
+
 	int i = 0;
 	for( i ; i <= strlen(message); i++)
 	{
@@ -35,7 +35,6 @@ unsigned char* checksum(char* message, unsigned char* myChecksum)
     myChecksum[2] = '\0';
 
 
-    free(mysum);
 #endif
 
 #ifdef DEBUG
