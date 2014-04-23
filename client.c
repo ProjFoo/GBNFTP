@@ -8,7 +8,7 @@ int main(int argc, char *argv[]){
 	    char *fileName, *hostName;
 	    char packet[MAXBUFLEN];
 	    FILE *fr;
-
+	    srand(time(NULL));
 	    hostName = malloc(strlen(argv[1]));
 
 	    strcpy(hostName, argv[1]);
@@ -152,6 +152,12 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 					seqNumOut[0] = '0';
 				}
 				printf("SeqNumOutOops = %s\n", seqNumOut);
+			}
+			int v1 = rand() % 100;
+			if (v1 < 50)
+			{
+				puts("Boom goes the dynamite");
+				acknak[0] = NAK;
 			}
 			buildPacket(seqNumOut, checksum, acknak);
 			
