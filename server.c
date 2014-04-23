@@ -161,10 +161,13 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd, struct sockaddr_st
 				incSeqNumInt = atoi(incSeqNum);
 				printf("IncAckNak = %s\n ExpectedSeqNum = %d\n IncSeqNumInt = %d\n", incmessage, expectedSeqNum, incSeqNumInt);
 				
-				if (incAckNak == ACK && expectedSeqNum == incSeqNumInt)
+				if (incAckNak == ACK && 
+						((expectedSeqNum == incSeqNumInt) //Received Expected ACK
+								|| (expectedSeqNum < incSeqNumInt) // Received Cumulative ACK
+								|| ((expectedSeqNum - WINDOWSIZE) > incSeqNumInt))) //Received Overlapped Cumulative ACK
 				{
 					puts("Case 1 = Everything is fine, nothing is wrong");
-					expectedSeqNum++;
+					expectedSeqNum = incSeqNumInt+1;
 					base++;
 					if (expectedSeqNum >= 32){
 						expectedSeqNum = 0;
@@ -174,7 +177,7 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd, struct sockaddr_st
 						base = 0;
 					}
 				}
-				else if ((incAckNak == ACK && expectedSeqNum != incSeqNumInt) || incAckNak == NAK)
+				else //if ((incAckNak == ACK && expectedSeqNum != incSeqNumInt) || incAckNak == NAK)
 				{
 					puts("Case 2 = Received Out Of Order ACK, or received NAK"); 
 					int i;
@@ -191,10 +194,6 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd, struct sockaddr_st
 						j = j % MODULUS;
 						
 					}
-				}
-				else if (incAckNak == NAK)
-				{
-							
 				}
 				
 			//================================================================================================
@@ -217,6 +216,7 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd, struct sockaddr_st
 	fclose(fr);
 }
 
+/*
 void reSend(int numBytes, int sockfd, struct sockaddr_storage their_addr, socklen_t addr_len)
 {
 	//===================================================================
@@ -280,7 +280,7 @@ void reSend(int numBytes, int sockfd, struct sockaddr_storage their_addr, sockle
 				//================================================================================================
 				 
 }
-
+*/
 void initialSend(char message[], char getChar, FILE *fr, char seqNumOut[], char checkSum[], char *acknak, int numBytes, int sockfd, struct sockaddr_storage their_addr, socklen_t addr_len)
 {
 	memset(message, 0, MESSAGESIZE + 1);

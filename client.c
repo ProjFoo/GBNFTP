@@ -153,12 +153,14 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 				}
 				printf("SeqNumOutOops = %s\n", seqNumOut);
 			}
+			/*
 			int v1 = rand() % 100;
 			if (v1 < 50)
 			{
 				puts("Boom goes the dynamite");
 				acknak[0] = NAK;
 			}
+			*/
 			buildPacket(seqNumOut, checksum, acknak);
 			
 			if ((numBytes = sendto(sockfd, currPacket, strlen(currPacket), 0,
