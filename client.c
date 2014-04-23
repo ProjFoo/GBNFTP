@@ -119,9 +119,9 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 			
 			if (expectedSeqNum == incSeqNum)
 			{
-				acknak[0] = ACK;
-				sprintf(seqNumOut, "%ld", expectedSeqNum+1);
-				if (expectedSeqNum < 9)
+				acknak[0] = ACK;				
+				sprintf(seqNumOut, "%ld", (expectedSeqNum+1)%MODULUS);
+				if ((expectedSeqNum+1)%MODULUS < 10)
 				{
 					seqNumOut[1] = seqNumOut[0];
 					seqNumOut[0] = '0';

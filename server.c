@@ -14,7 +14,7 @@ int isSent = 1;
 int seqNum = MODULUS;
 int packetsSent = -1;
 int base = 0;
-int expectedSeqNum = 0;
+int expectedSeqNum = 1;
 
 void buildPacket(char *seqNum, char *checkSum, char *acknak, char *message);
 void initialSend(char message[], char getChar, FILE *fr, char seqNumOut[], char checkSum[], char *acknak, int numBytes, int sockfd, struct sockaddr_storage their_addr, socklen_t addr_len);
@@ -186,7 +186,7 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd, struct sockaddr_st
 						{
 							perror("talker: sendto");
 						}
-						printf("PacketBuffer = %s\n", packetBuffer[j]);
+						//printf("PacketBuffer = %s\n", packetBuffer[j]);
 						j++;
 						j = j % MODULUS;
 						
@@ -262,7 +262,7 @@ void reSend(int numBytes, int sockfd, struct sockaddr_storage their_addr, sockle
 				{
 					perror("talker: sendto");
 				}
-				printf("PacketBuffer = %s\n", packetBuffer[j]);
+				//printf("PacketBuffer = %s\n", packetBuffer[j]);
 				j++;
 				j = j % MODULUS;
 			}
@@ -296,7 +296,8 @@ void initialSend(char message[], char getChar, FILE *fr, char seqNumOut[], char 
 	//puts("Building packet");
 	buildPacket(seqNumOut, checkSum, acknak, message);
 	strcpy(packetBuffer[seqNumMod], currPacket);
-	//printf("%s", packetBuffer[seqNumMod]);
+	//sleep(1);
+	//printf("Packet Buffer = %s\n", packetBuffer[seqNumMod]);
 	//packetBuffer[seqNumMod] = currPacket;
 
 	if ((numBytes = sendto(sockfd, currPacket, strlen(currPacket), 0,
