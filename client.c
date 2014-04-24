@@ -1,4 +1,6 @@
 #include "client.h"
+int viewFirstTen; //DELETE ME
+
 
 int main(int argc, char *argv[]){
 	int sockfd;
@@ -8,7 +10,8 @@ int main(int argc, char *argv[]){
 	    char *fileName, *hostName;
 	    char packet[MAXBUFLEN];
 	    FILE *fr;
-
+	    
+	    srand(time(NULL));
 	    hostName = malloc(strlen(argv[1]));
 
 	    strcpy(hostName, argv[1]);
@@ -81,6 +84,7 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 
 	addr_len = sizeof their_addr;
 
+	char acknak = FIN;
 	do{
 
 		memset(incMessage, 0, MAXBUFLEN);
@@ -94,31 +98,44 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 			perror("recvfrom");
 			puts("The packet appears to have been lost.");
 		}
-
+		acknak = incMessage[4];
+		printf("IncAckNak = %c\n", acknak);
 		len = strlen(incMessage);
 		puts("Data received! Saving to file...");
 
-		if(len > HEADERSIZE){
+		if(len > HEADERSIZE && acknak != FIN){
+
+			///puts("about to strcopy");
+			//printf("IncMessage = %s\n", incMessage);
 			strncpy(message, incMessage + HEADERSIZE, strlen(incMessage) - HEADERSIZE);
+
+			///puts("finished strcopy");
+			if (viewFirstTen < 11)
+			{
+			//printf("Message = %s\n", message);
+			viewFirstTen++;
+			}
 			//Do checksum stuff
 			//Do GBN stuff
 			//Do SeqNum stuff
+			
 
-			printf("\nSeqNum: %c%c\n\n", incMessage[0], incMessage[1]);
 			char tempSeqNum[2];
 			tempSeqNum[0] = incMessage[0];
 			tempSeqNum[1] = incMessage[1];			
 			int incSeqNum = atoi(tempSeqNum);
-			printf("IncSeqNum = %d\n", incSeqNum);
+			//printf("IncSeqNum = %d\n", incSeqNum);
 			int expectedSeqNum = seqNum % MODULUS;
-
+			printf("\nSeqNum: %c%c\n IncSeqNum = %d\n Expected SeqNum = %d\n", incMessage[0], incMessage[1], incSeqNum, expectedSeqNum);
 			char acknak[1];
-			char seqNumOut[2];
-			
+			char seqNumOut[2];			
 			char checksum[] = "11";
 			
-			if (expectedSeqNum == incSeqNum)
+			int v1 = rand() % 100;
+			//int v1 = 100;
+			if (v1 > 20 && expectedSeqNum == incSeqNum)
 			{
+				puts("Case 1. Everything is fine, nothing is wrong");
 				acknak[0] = ACK;				
 				sprintf(seqNumOut, "%ld", (expectedSeqNum+1)%MODULUS);
 				if ((expectedSeqNum+1)%MODULUS < 10)
@@ -126,13 +143,15 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 					seqNumOut[1] = seqNumOut[0];
 					seqNumOut[0] = '0';
 				}
-				printf("SeqNumOut = %s\n", seqNumOut);
+				//printf("SeqNumOut = %s\n", seqNumOut);
 				seqNum++;
 				fprintf(fr, "%s", message);
 			}
 			
-			else if (0) // If checksum fails
+			else if (v1 <= 20) // If checksum fails
 			{
+				puts("Case 2. Corrupt packet");
+
 				acknak[0] = NAK;
 				sprintf(seqNumOut, "%ld", expectedSeqNum);
 				if (expectedSeqNum < 10)
@@ -144,6 +163,7 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 			
 			else
 			{
+				puts("Case 3. OOO packet");
 				acknak[0] = ACK;
 				sprintf(seqNumOut, "%ld", expectedSeqNum);
 				if (expectedSeqNum < 10)
@@ -151,8 +171,16 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 					seqNumOut[1] = seqNumOut[0];
 					seqNumOut[0] = '0';
 				}
-				printf("SeqNumOutOops = %s\n", seqNumOut);
+				//printf("SeqNumOutOops = %s\n", seqNumOut);
 			}
+			/*
+			int v1 = rand() % 100;
+			if (v1 < 50)
+			{
+				puts("Boom goes the dynamite");
+				acknak[0] = NAK;
+			}
+			*/
 			buildPacket(seqNumOut, checksum, acknak);
 			
 			if ((numBytes = sendto(sockfd, currPacket, strlen(currPacket), 0,
@@ -168,8 +196,18 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 
 
 
-		}while(len > HEADERSIZE);
-
+		}while(len > HEADERSIZE && acknak != FIN);
+/*
+	char finalSeqNum[2] = "00";
+	char finalCheckSum[2] = "11";
+	char finalAckNak[1];
+	finalAckNak[0] = FIN;
+	buildPacket(finalSeqNum, finalCheckSum, finalAckNak);
+	if ((numBytes = sendto(sockfd, currPacket, strlen(currPacket), 0,
+								(struct sockaddr *)&their_addr, addr_len)) == -1) {
+									perror("talker: sendto");
+	}
+	*/
 	puts("Finished receiving file. Saving and closing.");
 
 	fclose(fr);

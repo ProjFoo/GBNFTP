@@ -17,11 +17,12 @@
 
 #define SERVERPORT "10030"
 #define MAXBUFLEN 513
-#define MESSAGELENGTH 507
+#define MESSAGELENGTH 508
 #define HEADERSIZE 5
 #define MODULUS 32
 #define ACK '1'
 #define NAK '0'
+#define FIN '2'
 
 int seqNum = MODULUS;
 char currPacket[HEADERSIZE];
