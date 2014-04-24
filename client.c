@@ -69,6 +69,7 @@ int main(int argc, char *argv[]){
 void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 
 	int numBytes;
+	int requestNumber = 0;
 
 	char incMessage[MAXBUFLEN];
 	char message [MESSAGELENGTH];
@@ -93,11 +94,8 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 
 		puts("Waiting for file data...");
 
-		if ((numBytes = recvfrom(sockfd, incMessage, MAXBUFLEN , 0,
-			(struct sockaddr *)&their_addr, &addr_len)) == -1) {
-			perror("recvfrom");
-			puts("The packet appears to have been lost.");
-		}
+		recvfrom(sockfd, incMessage, MAXBUFLEN , 0,	(struct sockaddr *)&their_addr, &addr_len);
+
 		acknak = incMessage[4];
 		printf("IncAckNak = %c\n", acknak);
 		len = strlen(incMessage);
@@ -124,37 +122,36 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 			tempSeqNum[0] = incMessage[0];
 			tempSeqNum[1] = incMessage[1];			
 			int incSeqNum = atoi(tempSeqNum);
-			//printf("IncSeqNum = %d\n", incSeqNum);
-			int expectedSeqNum = seqNum % MODULUS;
-			printf("\nSeqNum: %c%c\n IncSeqNum = %d\n Expected SeqNum = %d\n", incMessage[0], incMessage[1], incSeqNum, expectedSeqNum);
+
+			printf("\nSeqNum: %c%c\n IncSeqNum = %d\n Expected SeqNum = %d\n",
+					incMessage[0], incMessage[1], incSeqNum, requestNumber);
 			char acknak[1];
 			char seqNumOut[2];			
 			char checksum[] = "11";
 			
-			int v1 = rand() % 100;
-			//int v1 = 100;
-			if (v1 > 20 && expectedSeqNum == incSeqNum)
+
+			if (requestNumber == incSeqNum)
 			{
 				puts("Case 1. Everything is fine, nothing is wrong");
 				acknak[0] = ACK;				
-				sprintf(seqNumOut, "%ld", (expectedSeqNum+1)%MODULUS);
-				if ((expectedSeqNum+1)%MODULUS < 10)
+				sprintf(seqNumOut, "%ld", (requestNumber + 1)%MODULUS);
+				if ((requestNumber + 1 ) % MODULUS < 10)
 				{
 					seqNumOut[1] = seqNumOut[0];
 					seqNumOut[0] = '0';
 				}
 				//printf("SeqNumOut = %s\n", seqNumOut);
-				seqNum++;
+				requestNumber++;
 				fprintf(fr, "%s", message);
 			}
 			
-			else if (v1 <= 20) // If checksum fails
+			else if (requestNumber != incSeqNum) // If checksum fails
 			{
-				puts("Case 2. Corrupt packet");
+				puts("Case 2. Wrong packet.");
 
 				acknak[0] = NAK;
-				sprintf(seqNumOut, "%ld", expectedSeqNum);
-				if (expectedSeqNum < 10)
+				sprintf(seqNumOut, "%ld", requestNumber);
+				if (requestNumber < 10)
 				{
 					seqNumOut[1] = seqNumOut[0];
 					seqNumOut[0] = '0';
@@ -165,8 +162,8 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 			{
 				puts("Case 3. OOO packet");
 				acknak[0] = ACK;
-				sprintf(seqNumOut, "%ld", expectedSeqNum);
-				if (expectedSeqNum < 10)
+				sprintf(seqNumOut, "%ld", requestNumber);
+				if (requestNumber < 10)
 				{
 					seqNumOut[1] = seqNumOut[0];
 					seqNumOut[0] = '0';
