@@ -109,8 +109,14 @@ int main(void) {
 
 void sendFile(char *fileName, struct addrinfo *p, int sockfd,
 		struct sockaddr_storage their_addr, socklen_t addr_len) {
-	int packetsSent = 0;
-	int packetsReceived = 0;
+
+
+	int N = WINDOWSIZE,
+		requestNumber = -1,
+		sequenceNumber = 0,
+		sequenceBase = 0,
+		sequenceMax = N - 1;
+
 	FILE *fr;
 	fr = fopen(fileName, "r");
 	char message[MESSAGESIZE + 1];
@@ -126,7 +132,26 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd,
 	//checkSum = getCheckSum();
 	//seqNum = getSeqNum();
 
-	while (getChar != EOF) {
+	while (getChar != EOF) {  //while there is file to be sent
+
+		while(/*there is stuff in the recv socket */ 0) {
+			/*recv that stuff from the recv socket */
+			if( requestNumber > sequenceBase ){
+				sequenceMax = sequenceMax + (requestNumber - sequenceBase);
+				sequenceBase = requestNumber;
+			}
+		}
+
+		for(sequenceNumber = sequenceBase; sequenceNumber < sequenceMax; sequenceNumber++) {
+			if(/*packetList[sequenceNumber] does not exist*/ 0) {
+				//build packetList[sequenceNumber]
+			}
+			//send packetList[sequenceNumber]
+			if(/*there is stuff in the recv socket*/ 0){
+				//get stuff from recv socket
+				//parse stuff from recv socket
+			}
+		}
 
 		puts("Beginning GBN");
 
