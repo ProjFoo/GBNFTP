@@ -5,9 +5,11 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/poll.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <sys/poll.h>
 
 #define MYPORT "10030"    // the port users will be connecting to
 

@@ -19,6 +19,8 @@ int expectedSeqNum = 1;
 int viewFirstTen = 0;
 
 void buildPacket(char *seqNum, char *checkSum, char *acknak, char *message);
+void makeSeqNum(int seqNum, char* seqStr);
+void getMessage(char* message, FILE *fr, char *getChar);
 
 int main(void) {
 	int sockfd;
@@ -123,7 +125,7 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd,
 	checkSum = "11";
 	char seqNumOut[2];
 
-	struct pollfd ufds;
+	struct pollfd *ufds;
 	ufds->fd = sockfd;
 
 	char incSeqNum[2];
@@ -149,11 +151,11 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd,
 		}
 
 		for(sequenceNumber = sequenceBase; sequenceNumber - sequenceBase < N; sequenceNumber++) {
-			if( strlen(packetBuffer) == 0 ) {
+			if( strlen(packetBuffer[sequenceNumber]) == 0 ) {
 				makeSeqNum(sequenceNumber, seqNumOut);
-				getMessage(message, fr, getChar);
+				getMessage(message, fr, &getChar);
 				buildPacket(seqNumOut, checkSum, acknak, message);
-				packetBuffer[sequenceNumber] = currPacket;
+				strcpy(packetBuffer[sequenceNumber], currPacket);
 			}
 			sendto(sockfd, packetBuffer[sequenceNumber], strlen(packetBuffer[sequenceNumber]),
 					0, (struct sockaddr *) &their_addr, addr_len);
@@ -285,8 +287,8 @@ void getMessage(char* message, FILE *fr, char *getChar){
 	int messageLength = 0;
 
 	while (messageLength < MESSAGESIZE) {
-		if( ( getChar = fgetc(fr) ) != EOF ) {
-			message[messageLength] = getChar;
+		if( ( getChar[0] = fgetc(fr) ) != EOF ) {
+			message[messageLength] = getChar[0];
 		}
 		else{
 			message[messageLength] = '\0';
