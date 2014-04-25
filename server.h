@@ -39,10 +39,9 @@ char* makeChecksum(char* message);
 
 
 int checkIfFileExist(char *buf, char **fileName);
-
-
-float damaged = 0;
-float lost = 0;
+float probDamaged = 0;
+float probLost = 0;
+float probDelay = 0;
 
 
 /*

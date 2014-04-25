@@ -26,7 +26,7 @@ int gremlin(char ** message, float damaged, float lost, float delay, int delayti
 	int p_dam = damaged * 100,
 		p_lost = lost * 100,
 		p_delay = delay * 100;
-printf("CurrentProbability is %d\n", r);
+//printf("CurrentProbability is %d\n", r);
 
 	if (r <= p_dam)
 	{

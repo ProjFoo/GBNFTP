@@ -129,8 +129,8 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 		incacknak = incMessage[4];
 		printf("IncAckNak = %c\n", incacknak);
 		len = strlen(incMessage);
-		puts("Data received! Saving to file...");
-		printf("LEN = %d\n", len);
+		//puts("Data received! Saving to file...");
+		//printf("LEN = %d\n", len);
 		if(len > 0){
 
 
@@ -191,6 +191,11 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 				//printf("SeqNumOut = %s\n", seqNumOut);
 				seqNum++;
 				seqNum = seqNum % MODULUS;
+				char messageOut[40];
+				memset(messageOut, 0, sizeof(messageOut));
+				strncpy(messageOut, incMessage + HEADERSIZE, 40);
+				printf("Incoming message(first 40) = %s\n", messageOut);
+
 				fprintf(fr, "%s", message);
 			}
 
@@ -226,7 +231,10 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 			else if (expectedSeqNum == incSeqNum && incacknak == FIN)
 			{
 				puts("finishing up");
-
+				char messageOut[40];
+				memset(messageOut, 0, sizeof(messageOut));
+				strncpy(messageOut, incMessage + HEADERSIZE, 40);
+				printf("Incoming message(first 40) = %s\n", messageOut);
 				char finalSeqNum[2] = "00";
 				char finalCheckSum[2] = "11";
 				char finalAckNak[1];
@@ -256,6 +264,12 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 
 	puts("Finished receiving file. Saving and closing.");
 
+	memset(currPacket, 0, sizeof(currPacket));
+
+	if ((numBytes = sendto(sockfd, currPacket, strlen(currPacket), 0,
+			(struct sockaddr *)&their_addr, addr_len)) == -1) {
+				perror("talker: sendto");
+	}
 
 	fclose(fr);
 }
