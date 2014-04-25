@@ -24,7 +24,7 @@
 #define NAK '0'
 #define FIN '2'
 
-int seqNum = MODULUS;
+int seqNum = 0;
 char currPacket[HEADERSIZE];
 
 int main(int argc, char *argv[]);
