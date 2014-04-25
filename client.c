@@ -10,7 +10,7 @@ int main(int argc, char *argv[]){
 	    char *fileName, *hostName;
 	    char packet[MAXBUFLEN];
 	    FILE *fr;
-	    
+
 	    srand(time(NULL));
 	    hostName = malloc(strlen(argv[1]));
 
@@ -118,11 +118,11 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 			//Do checksum stuff
 			//Do GBN stuff
 			//Do SeqNum stuff
-			
+
 
 			char tempSeqNum[2];
 			tempSeqNum[0] = incMessage[0];
-			tempSeqNum[1] = incMessage[1];			
+			tempSeqNum[1] = incMessage[1];
 			int incSeqNum = atoi(tempSeqNum);
 			int validChecksum = 0;
 			//printf("IncSeqNum = %d\n", incSeqNum);
@@ -130,6 +130,7 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 			printf("\nSeqNum: %c%c\n IncSeqNum = %d\n Expected SeqNum = %d\n", incMessage[0], incMessage[1], incSeqNum, expectedSeqNum);
 
 			char acknak[1];
+<<<<<<< HEAD
 			char seqNumOut[2];			
 			char myChecksum[3];
 			char *checkChecksum;
@@ -154,10 +155,17 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 			
 			int v1 = rand() % 100;
 			//int v1 = 100;
+=======
+			char seqNumOut[2];
+			char checksum[] = "11";
+
+			//int v1 = rand() % 100;
+			int v1 = 100;
+>>>>>>> 5351de624ad96b1e1570d45660b3de650b0e66e1
 			if (v1 > 70 && expectedSeqNum == incSeqNum && incacknak != FIN)
 			{
 				puts("Case 1. Everything is fine, nothing is wrong");
-				acknak[0] = ACK;				
+				acknak[0] = ACK;
 				sprintf(seqNumOut, "%ld", (expectedSeqNum+1));
 				if (expectedSeqNum < 9)
 				{
@@ -166,9 +174,10 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 				}
 				//printf("SeqNumOut = %s\n", seqNumOut);
 				seqNum++;
+				seqNum = seqNum % MODULUS;
 				fprintf(fr, "%s", message);
 			}
-			
+
 			else if (expectedSeqNum != incSeqNum)
 			{
 				puts("Case 3. OOO packet");
@@ -181,7 +190,7 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 				}
 				//printf("SeqNumOutOops = %s\n", seqNumOut);
 			}
-			
+
 			else if (v1 <= 70) // If checksum fails
 			{
 				puts("Case 2. Corrupt packet");
@@ -211,13 +220,18 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 				acknak[0] = NAK;
 			}
 			*/
+<<<<<<< HEAD
 			buildPacket(seqNumOut, myChecksum, acknak);
 			
+=======
+			buildPacket(seqNumOut, checksum, acknak);
+
+>>>>>>> 5351de624ad96b1e1570d45660b3de650b0e66e1
 			if ((numBytes = sendto(sockfd, currPacket, strlen(currPacket), 0,
 										(struct sockaddr *)&their_addr, addr_len)) == -1) {
 											perror("talker: sendto");
 								}
-			
+
 			//if all success, print to file
 			//fprintf(fr, "%s", message);
 		//}

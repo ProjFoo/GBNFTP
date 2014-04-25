@@ -15,11 +15,13 @@ int packetsSent = -1;
 int expectedSeqNum = 1;
 int viewFirstTen = 0;
 int maxPacket = 0;
-
+int numOfResets;
+int arrayIndex;
 int requestNumber;
 int seqNum;
 int base;
 int sequenceMax;
+int inTransit;
 
 void buildPacket(char *seqNum, char *checkSum, char *acknak, char *message);
 char initialSend(char message[], char getChar, FILE *fr, char seqNumOut[],
@@ -74,9 +76,12 @@ int main(void) {
 		int i;
 		maxPacket = 0;
 		requestNumber = 0;
-		seqNum = 0;
+		seqNum = 32;
 		base = 0;
 		sequenceMax = WINDOWSIZE - 1;
+		numOfResets = 0;
+		arrayIndex = 0;
+		inTransit = 0;
 		char *testGET;
 		char *fileName;
 		for (i = 0; i < MAXBUFLEN; i++) {
@@ -150,12 +155,14 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd,
 		//puts("Packet sent...Waiting for response...");
 
 	}
+	//sleep(60);
 	//reSend(numBytes, sockfd);
 
 	//put in receive here
 
 	for (;;) {
 		int i = 0;
+<<<<<<< HEAD
 		for (i = base; i <= sequenceMax; i++) {
 			if (strlen(packetBuffer[i]) > 0) {
 
@@ -184,6 +191,19 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd,
 						strlen(currPacket), 0,
 						(struct sockaddr *) &their_addr, addr_len)) == -1) {
 					perror("talker: sendto");
+=======
+		printf("ArrayIndex is currently %d, and SequenceMax is currently %d\n",
+				arrayIndex, sequenceMax);
+		if (inTransit == 0) {
+			inTransit = 1;
+			for (i = arrayIndex; i <= sequenceMax; i++) {
+				if (strlen(packetBuffer[i]) > 0) {
+					if ((numBytes = sendto(sockfd, packetBuffer[i],
+							strlen(packetBuffer[i]), 0,
+							(struct sockaddr *) &their_addr, addr_len)) == -1) {
+						perror("talker: sendto");
+					}
+>>>>>>> 5351de624ad96b1e1570d45660b3de650b0e66e1
 				}
 
 				free(message);
@@ -214,25 +234,42 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd,
 		requestNumber = atoi(incSeqNum);
 		//printf("IncAckNak = %s\n ExpectedSeqNum = %d\n IncSeqNumInt = %d\n", incmessage, expectedSeqNum, incSeqNumInt);
 
-		if (incAckNak == ACK && requestNumber > base) //Received Expected ACK
+		if (incAckNak == ACK
+				&& (requestNumber > base
+						|| ((base - WINDOWSIZE) > requestNumber))) //Received Expected ACK
 				//|| (expectedSeqNum < incSeqNumInt) // Received Cumulative ACK
-				//|| ((expectedSeqNum - WINDOWSIZE) > incSeqNumInt))
+
 				//) //Received Overlapped Cumulative ACK
 				{
-			puts("Case 1 = Everything is fine, nothing is wrong");
-			sequenceMax = sequenceMax + (requestNumber - base);
+			//	puts("Case 1 = Everything is fine, nothing is wrong");
+			sequenceMax++;
+			//= sequenceMax + (requestNumber - base);
 			if (sequenceMax > maxPacket) {
 				sequenceMax = maxPacket;
 			}
+			//printf("Base is currently %d, and requestNumber is %d\n", base, requestNumber);
+			if ((base - WINDOWSIZE) > requestNumber) {
+				puts("Incrementing reset counter");
+				numOfResets++;
+			}
+
 			base = requestNumber;
+			arrayIndex = base + (numOfResets * MODULUS);
+			inTransit = 1;
+
+			if ((numBytes = sendto(sockfd, packetBuffer[sequenceMax],
+					strlen(packetBuffer[sequenceMax]), 0,
+					(struct sockaddr *) &their_addr, addr_len)) == -1) {
+				perror("talker: sendto");
+			}
 		}
 
 		else {
-			puts("Something went wrong");
+			inTransit = 0;
 		}
 
 	}
-	//================================================================================================
+//================================================================================================
 
 	puts("Response received...");
 
@@ -267,7 +304,7 @@ char initialSend(char message[], char getChar, FILE *fr, char seqNumOut[],
 		messageLength++;
 	}
 	//puts("Incrementing sequence#");
-	int seqNumMod = seqNum;
+	int seqNumMod = seqNum % MODULUS;
 	//puts("Casting sequence# to char array");
 	sprintf(seqNumOut, "%ld", seqNumMod);
 	if (seqNumMod < 10) {
@@ -275,6 +312,7 @@ char initialSend(char message[], char getChar, FILE *fr, char seqNumOut[],
 		seqNumOut[1] = (char) (((int) '0') + seqNumMod);
 	}
 	seqNum++;
+	printf("Writing sequence number %s into packet.\n", seqNumOut);
 	//puts("Building packet");
 
 
