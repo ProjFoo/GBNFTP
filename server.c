@@ -10,10 +10,10 @@
 char currPacket[PACKETSIZE];
 char packetBuffer[1700][PACKETSIZE];
 
-int packetsSent = -1;
+//int packetsSent = -1;
 
 int expectedSeqNum = 1;
-int viewFirstTen = 0;
+//int viewFirstTen = 0;
 int maxPacket = 0;
 int numOfResets;
 int arrayIndex;
@@ -38,7 +38,7 @@ int main(void) {
 	char buf[MAXBUFLEN];
 	struct sockaddr_storage their_addr;
 	socklen_t addr_len;
-	char s[INET6_ADDRSTRLEN];
+	//char s[INET6_ADDRSTRLEN];
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC; // set to AF_INET to force IPv4
 	hints.ai_socktype = SOCK_DGRAM;
@@ -162,8 +162,8 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd,
 
 	for (;;) {
 		int i = 0;
-		printf("ArrayIndex is currently %d, and SequenceMax is currently %d\n",
-				arrayIndex, sequenceMax);
+		printf("ArrayIndex is currently %d, and SequenceMax is currently %d, and MaxPacket is %d\n",
+				arrayIndex, sequenceMax, maxPacket);
 		if (inTransit == 0) {
 			inTransit = 1;
 			for (i = arrayIndex; i <= sequenceMax; i++) {
@@ -219,6 +219,10 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd,
 
 			base = requestNumber;
 			arrayIndex = base + (numOfResets * MODULUS);
+			if (sequenceMax != maxPacket && (sequenceMax - WINDOWSIZE) < arrayIndex)
+			{
+				arrayIndex = (sequenceMax - WINDOWSIZE);
+			}
 			inTransit = 1;
 
 			if ((numBytes = sendto(sockfd, packetBuffer[sequenceMax],

@@ -6,10 +6,10 @@ int main(int argc, char *argv[]){
 	int sockfd;
 	    struct addrinfo hints, *servinfo, *p;
 	    int rv;
-	    int numbytes;
+	    //int numbytes;
 	    char *fileName, *hostName;
-	    char packet[MAXBUFLEN];
-	    FILE *fr;
+	    //char packet[MAXBUFLEN];
+	    //FILE *fr;
 
 	    srand(time(NULL));
 	    hostName = malloc(strlen(argv[1]));
@@ -62,7 +62,9 @@ int main(int argc, char *argv[]){
 
 	    close(sockfd);
 	    free(fileName);
+	    free(hostName);
 
+	    puts("Returning main");
 	    return 0;
 	}
 
@@ -131,9 +133,9 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 			char seqNumOut[2];
 			char checksum[] = "11";
 
-			//int v1 = rand() % 100;
-			int v1 = 100;
-			if (v1 > 70 && expectedSeqNum == incSeqNum && incacknak != FIN)
+			int v1 = rand() % 100;
+			//int v1 = 100;
+			if (v1 > 50 && expectedSeqNum == incSeqNum && incacknak != FIN)
 			{
 				puts("Case 1. Everything is fine, nothing is wrong");
 				acknak[0] = ACK;
@@ -162,7 +164,7 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 				//printf("SeqNumOutOops = %s\n", seqNumOut);
 			}
 
-			else if (v1 <= 70) // If checksum fails
+			else if (v1 <= 50) // If checksum fails
 			{
 				puts("Case 2. Corrupt packet");
 
@@ -246,7 +248,7 @@ char * getCommand(){
 	scanf("%s", command);
 
 	while(strcmp(command, "GET") != 0){
-		puts("Command not support. ctrc-c to end or enter another command");
+		puts("Command not supported. CTRL-C to end or enter another command");
 		scanf("%s", command);
 	}
 
