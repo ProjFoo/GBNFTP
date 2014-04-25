@@ -21,6 +21,7 @@ int requestNumber;
 int seqNum;
 int base;
 int sequenceMax;
+int inTransit;
 
 void buildPacket(char *seqNum, char *checkSum, char *acknak, char *message);
 char initialSend(char message[], char getChar, FILE *fr, char seqNumOut[],
@@ -80,6 +81,7 @@ int main(void) {
 		sequenceMax = WINDOWSIZE - 1;
 		numOfResets = 0;
 		arrayIndex = 0;
+		inTransit = 0;
 		char *testGET;
 		char *fileName;
 		for (i = 0; i < MAXBUFLEN; i++) {
@@ -160,13 +162,17 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd,
 
 	for (;;) {
 		int i = 0;
-		printf("ArrayIndex is currently %d, and SequenceMax is currently %d\n", arrayIndex, sequenceMax);
-		for (i = arrayIndex; i <= sequenceMax; i++) {
-			if (strlen(packetBuffer[i]) > 0) {
-				if ((numBytes = sendto(sockfd, packetBuffer[i],
-						strlen(packetBuffer[i]), 0,
-						(struct sockaddr *) &their_addr, addr_len)) == -1) {
-					perror("talker: sendto");
+		printf("ArrayIndex is currently %d, and SequenceMax is currently %d\n",
+				arrayIndex, sequenceMax);
+		if (inTransit == 0) {
+			inTransit = 1;
+			for (i = arrayIndex; i <= sequenceMax; i++) {
+				if (strlen(packetBuffer[i]) > 0) {
+					if ((numBytes = sendto(sockfd, packetBuffer[i],
+							strlen(packetBuffer[i]), 0,
+							(struct sockaddr *) &their_addr, addr_len)) == -1) {
+						perror("talker: sendto");
+					}
 				}
 			}
 		}
@@ -199,7 +205,7 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd,
 
 				//) //Received Overlapped Cumulative ACK
 				{
-		//	puts("Case 1 = Everything is fine, nothing is wrong");
+			//	puts("Case 1 = Everything is fine, nothing is wrong");
 			sequenceMax++;
 			//= sequenceMax + (requestNumber - base);
 			if (sequenceMax > maxPacket) {
@@ -211,13 +217,19 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd,
 				numOfResets++;
 			}
 
-
 			base = requestNumber;
 			arrayIndex = base + (numOfResets * MODULUS);
+			inTransit = 1;
+
+			if ((numBytes = sendto(sockfd, packetBuffer[sequenceMax],
+					strlen(packetBuffer[sequenceMax]), 0,
+					(struct sockaddr *) &their_addr, addr_len)) == -1) {
+				perror("talker: sendto");
+			}
 		}
 
 		else {
-			//puts("Something went wrong");
+			inTransit = 0;
 		}
 
 	}
