@@ -1,6 +1,6 @@
 #ifndef CHECKSUM_H_INCLUDED
 #define CHECKSUM_H_INCLUDED
-
-unsigned char* checksum(char* message, unsigned char* myChecksum);
+#include <stdlib.h>
+char* checksum(char* message, char* myChecksum);
 
 #endif

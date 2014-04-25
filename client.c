@@ -124,12 +124,33 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 			tempSeqNum[0] = incMessage[0];
 			tempSeqNum[1] = incMessage[1];			
 			int incSeqNum = atoi(tempSeqNum);
+			int validChecksum = 0;
 			//printf("IncSeqNum = %d\n", incSeqNum);
 			int expectedSeqNum = seqNum;
 			printf("\nSeqNum: %c%c\n IncSeqNum = %d\n Expected SeqNum = %d\n", incMessage[0], incMessage[1], incSeqNum, expectedSeqNum);
+
 			char acknak[1];
 			char seqNumOut[2];			
-			char checksum[] = "11";
+			char myChecksum[3];
+			char *checkChecksum;
+
+			checkChecksum = malloc(3);
+			memset(checkChecksum, 0, 3);
+			memset(myChecksum, 0, 3);
+
+			checkChecksum = checksum(message, checkChecksum);
+			myChecksum[0] = incMessage[2];
+			myChecksum[1] = incMessage[3];
+
+			if(strcmp(checkChecksum, myChecksum) == 0){
+				puts("Successful Checksum");
+				validChecksum = 1;
+			}
+			else{
+				puts("Corrupt Checksum");
+				validChecksum = 0;
+			}
+
 			
 			int v1 = rand() % 100;
 			//int v1 = 100;
@@ -190,7 +211,7 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 				acknak[0] = NAK;
 			}
 			*/
-			buildPacket(seqNumOut, checksum, acknak);
+			buildPacket(seqNumOut, myChecksum, acknak);
 			
 			if ((numBytes = sendto(sockfd, currPacket, strlen(currPacket), 0,
 										(struct sockaddr *)&their_addr, addr_len)) == -1) {

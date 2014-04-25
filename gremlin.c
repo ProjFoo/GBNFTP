@@ -28,7 +28,7 @@ int gremlin(char ** message, float damaged, float lost, float delay, int delayti
 
 	if (r <= p_dam)
 	{
-
+		puts("Damaged the file");
 		damage(message, r);
 
 		returnNum = PACKET_PASSED;

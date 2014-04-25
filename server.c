@@ -32,7 +32,7 @@ int main(void) {
 	struct addrinfo hints, *servinfo, *p;
 	int rv;
 	int numbytes;
-
+	srand(time(NULL));
 	char buf[MAXBUFLEN];
 	struct sockaddr_storage their_addr;
 	socklen_t addr_len;
@@ -158,11 +158,38 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd,
 		int i = 0;
 		for (i = base; i <= sequenceMax; i++) {
 			if (strlen(packetBuffer[i]) > 0) {
-				if ((numBytes = sendto(sockfd, packetBuffer[i],
-						strlen(packetBuffer[i]), 0,
+
+				char *message, *myChecksum, *tempAcknack;
+
+				message = malloc(MESSAGESIZE);
+				myChecksum = malloc(3);
+				tempAcknack = malloc(2);
+
+				memset(message, 0, MESSAGESIZE);
+				memset(myChecksum, 0, 3);
+				memset(tempAcknack, 0, 2);
+				memset(seqNumOut, 0, 3);
+
+				strncpy(message, packetBuffer[i] + HEADERSIZE, strlen(packetBuffer[i]) - HEADERSIZE);
+				myChecksum[0] = packetBuffer[i][2];
+				myChecksum[1] = packetBuffer[i][3];
+				tempAcknack[0] = packetBuffer[i][4];
+				seqNumOut[0] = packetBuffer[i][0];
+				seqNumOut[1] = packetBuffer[i][1];
+
+				gremlin(&message, 0.7, 0, 0, 0, rand());
+				buildPacket(seqNumOut, checkSum, tempAcknack, message);
+
+				if ((numBytes = sendto(sockfd, currPacket,
+						strlen(currPacket), 0,
 						(struct sockaddr *) &their_addr, addr_len)) == -1) {
 					perror("talker: sendto");
 				}
+
+				free(message);
+				free(myChecksum);
+				free(tempAcknack);
+
 			}
 		}
 		//===================================================================
@@ -183,7 +210,7 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd,
 		incSeqNum[1] = incmessage[1];
 		//printf("IncSeqNum = %s\n", incSeqNum);
 		int incSeqNumInt;
-		base = 0;
+		//base = 0;
 		requestNumber = atoi(incSeqNum);
 		//printf("IncAckNak = %s\n ExpectedSeqNum = %d\n IncSeqNumInt = %d\n", incmessage, expectedSeqNum, incSeqNumInt);
 
@@ -249,6 +276,9 @@ char initialSend(char message[], char getChar, FILE *fr, char seqNumOut[],
 	}
 	seqNum++;
 	//puts("Building packet");
+
+
+
 	buildPacket(seqNumOut, checkSum, acknak, message);
 	memset(packetBuffer[maxPacket], 0, sizeof(packetBuffer[maxPacket]));
 	strcpy(packetBuffer[maxPacket], currPacket);
@@ -285,6 +315,9 @@ void replyWithValidFile(struct addrinfo *p, int sockfd,
 }
 
 void buildPacket(char *seqNum, char *checkSum, char *acknak, char *message) {
+
+	checkSum = checksum(message, checkSum);
+
 	//puts("\nZeroing out current packet before building.");
 	memset(currPacket, 0, sizeof(currPacket));
 	//puts("Copying sequence number into packet");

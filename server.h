@@ -8,6 +8,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include "checksum.h"
+#include "gremlin.h"
 
 #define MYPORT "10030"    // the port users will be connecting to
 
@@ -28,8 +30,8 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd, struct sockaddr_st
 
 char currPacket[MAXBUFLEN];
 char* makeChecksum(char* message);
-char * damage(char **p);
-int gremlin(float damaged, float lost, char ** packet);
+
+
 int checkIfFileExist(char *buf, char **fileName);
 
 float damaged = 0;
