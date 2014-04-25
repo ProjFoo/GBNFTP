@@ -11,7 +11,9 @@
 #include "checksum.h"
 #include "gremlin.h"
 
+
 #define MYPORT "10030"    // the port users will be connecting to
+
 
 #define MAXBUFLEN 513
 #define MESSAGESIZE 507
@@ -19,6 +21,7 @@
 #define ACK '1'
 #define NAK '0'
 #define FIN '2'
+
 
 int receive(int numBytes, char *buf, struct addrinfo *p, int sockfd);
 void writeToFile(FILE *fr, char *toAdd, int numbytes, int sizeOfBuf);
@@ -28,14 +31,19 @@ void replyWithValidFile(struct addrinfo *p, int sockfd, struct sockaddr_storage 
 void buildPacket(char *seqNum, char *checkSum, char *acknak, char *message);
 void sendFile(char *fileName, struct addrinfo *p, int sockfd, struct sockaddr_storage their_addr, socklen_t addr_len);
 
+
 char currPacket[MAXBUFLEN];
 char* makeChecksum(char* message);
 
 
+
+
 int checkIfFileExist(char *buf, char **fileName);
+
 
 float damaged = 0;
 float lost = 0;
+
 
 /*
 Call with: PORT prob prob
