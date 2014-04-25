@@ -22,6 +22,9 @@ int requestNumber;
 int seqNum;
 int base;
 int sequenceMax;
+struct timeval tv;
+
+
 
 void buildPacket(char *seqNum, char *checkSum, char *acknak, char *message);
 char initialSend(char message[], char getChar, FILE *fr, char seqNumOut[],
@@ -140,7 +143,12 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd,
 	//acknak = getacknak();
 	//checkSum = getCheckSum();
 	//seqNum = getSeqNum();
-
+	tv.tv_sec = 0;
+	tv.tv_usec = 20000;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
+	{
+		perror("Error:");
+	}
 	while (getChar != EOF) {
 
 		puts("Beginning GBN");
@@ -222,6 +230,8 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd,
 				(struct sockaddr *) &their_addr, &addr_len)) == -1) {
 			perror("recvfrom");
 			puts("The packet appears to have been lost.");
+			inTransit = 1;
+			continue;
 		}
 		//printf("Incmessage = %s\n", incmessage);
 
