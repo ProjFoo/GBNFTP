@@ -145,6 +145,7 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 				}
 				//printf("SeqNumOut = %s\n", seqNumOut);
 				seqNum++;
+				seqNum = seqNum % MODULUS;
 				fprintf(fr, "%s", message);
 			}
 			
