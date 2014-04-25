@@ -162,7 +162,8 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd,
 
 	for (;;) {
 		int i = 0;
-		printf("ArrayIndex is currently %d, and SequenceMax is currently %d, and MaxPacket is %d\n",
+		printf(
+				"ArrayIndex is currently %d, and SequenceMax is currently %d, and MaxPacket is %d\n",
 				arrayIndex, sequenceMax, maxPacket);
 		if (inTransit == 0) {
 			inTransit = 1;
@@ -219,16 +220,18 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd,
 
 			base = requestNumber;
 			arrayIndex = base + (numOfResets * MODULUS);
-			if (sequenceMax != maxPacket && (sequenceMax - WINDOWSIZE) < arrayIndex)
-			{
+			if (sequenceMax != maxPacket
+					&& (sequenceMax - WINDOWSIZE) < arrayIndex) {
 				arrayIndex = (sequenceMax - WINDOWSIZE);
 			}
 			inTransit = 1;
 
-			if ((numBytes = sendto(sockfd, packetBuffer[sequenceMax],
-					strlen(packetBuffer[sequenceMax]), 0,
-					(struct sockaddr *) &their_addr, addr_len)) == -1) {
-				perror("talker: sendto");
+			if (strlen(packetBuffer[sequenceMax]) > 0) {
+				if ((numBytes = sendto(sockfd, packetBuffer[sequenceMax],
+						strlen(packetBuffer[sequenceMax]), 0,
+						(struct sockaddr *) &their_addr, addr_len)) == -1) {
+					perror("talker: sendto");
+				}
 			}
 		}
 

@@ -105,7 +105,7 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 		len = strlen(incMessage);
 		puts("Data received! Saving to file...");
 		printf("LEN = %d\n", len);
-		//if(len > HEADERSIZE){
+		if(len > 0){
 
 			///puts("about to strcopy");
 			//printf("IncMessage = %s\n", incMessage);
@@ -135,7 +135,7 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 
 			int v1 = rand() % 100;
 			//int v1 = 100;
-			if (v1 > 50 && expectedSeqNum == incSeqNum && incacknak != FIN)
+			if (v1 > 90 && expectedSeqNum == incSeqNum && incacknak != FIN)
 			{
 				puts("Case 1. Everything is fine, nothing is wrong");
 				acknak[0] = ACK;
@@ -164,7 +164,7 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 				//printf("SeqNumOutOops = %s\n", seqNumOut);
 			}
 
-			else if (v1 <= 50) // If checksum fails
+			else if (v1 <= 90) // If checksum fails
 			{
 				puts("Case 2. Corrupt packet");
 
@@ -202,7 +202,7 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 
 			//if all success, print to file
 			//fprintf(fr, "%s", message);
-		//}
+		}
 
 
 
