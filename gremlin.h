@@ -5,6 +5,6 @@
 #define PACKET_PASSED 1
 #define PACKET_DELAYED 2
 
-int gremlin(char ** message, float damaged, float lost, float delay, int delaytime, unsigned int r);
+int gremlin(char ** message, float damaged, float lost, float delay, int delaytime, int r);
 char * damage(char **p, unsigned int r);
 #endif

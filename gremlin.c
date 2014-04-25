@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 
-int gremlin(char ** message, float damaged, float lost, float delay, int delaytime, unsigned int r) {
+int gremlin(char ** message, float damaged, float lost, float delay, int delaytime, int r) {
 
 
 
@@ -22,30 +22,32 @@ int gremlin(char ** message, float damaged, float lost, float delay, int delayti
 
 	int returnNum;
 	int sizeOfPacket = strlen(*message);
-	int s = r % 100;
+	//int s = r % 100;
 	int p_dam = damaged * 100,
 		p_lost = lost * 100,
 		p_delay = delay * 100;
-
+printf("CurrentProbability is %d\n", r);
 
 	if (r <= p_dam)
 	{
 
 		damage(message, r);
-
+	//	puts("Packet Damaged");
 		returnNum = PACKET_PASSED;
 	}
 	else if (r <= p_dam + p_lost)
 	{
-
+		//puts("Packet Lost");
 		returnNum = PACKET_LOST;
 
 	}
 	else if (r <= p_dam + p_lost + p_delay)
 	{
+		//puts("Packet Delayed");
 	    returnNum = PACKET_DELAYED;
 	}
 	else {
+		//puts("Packet is Fine");
 		returnNum = PACKET_PASSED;
 	}
 
@@ -55,7 +57,7 @@ int gremlin(char ** message, float damaged, float lost, float delay, int delayti
 char * damage(char **p, unsigned int r)
 {
 
-	srand(r);
+
 	const int ONE = 7,
 			TWO = 2,
 			THREE = 1;

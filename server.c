@@ -36,7 +36,7 @@ int main(void) {
 	int numbytes;
 	int sequenceMax;
 
-	srand(time(NULL ));
+	srand(time(NULL));
 	char buf[MAXBUFLEN];
 	struct sockaddr_storage their_addr;
 	socklen_t addr_len;
@@ -134,7 +134,7 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd,
 	char *acknak, *checkSum;
 
 	acknak = "1";
-	checkSum = "11";
+
 
 	char seqNumOut[2];
 	//acknak = getacknak();
@@ -163,41 +163,49 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd,
 				arrayIndex, sequenceMax, maxPacket);
 		if (inTransit == 0) {
 			inTransit = 1;
+			if (sequenceMax != maxPacket && (sequenceMax - WINDOWSIZE) != arrayIndex)
+			{
+				sequenceMax = (arrayIndex + WINDOWSIZE - 1);
+				arrayIndex = (sequenceMax - WINDOWSIZE + 1);
+			}
 			for (i = arrayIndex; i <= sequenceMax; i++) {
 				if (strlen(packetBuffer[i]) > 0) {
 
 
-					char message[MESSAGESIZE], myChecksum[3], tempAcknack[2];
+					char message[MESSAGESIZE + 1], myChecksum[3], tempAcknack[2];
+					int skip = 5;
 
-
-					memset(message, 0, MESSAGESIZE);
+					memset(message, 0, MESSAGESIZE + 1);
 					memset(myChecksum, 0, 3);
 					memset(tempAcknack, 0, 2);
 					memset(seqNumOut, 0, 3);
 
 
+
 					strncpy(message, packetBuffer[i] + HEADERSIZE, strlen(packetBuffer[i]) - HEADERSIZE);
+
 
 					pt = message;
 
 					myChecksum[0] = packetBuffer[i][2];
-
 					myChecksum[1] = packetBuffer[i][3];
-
 					tempAcknack[0] = packetBuffer[i][4];
-
 					seqNumOut[0] = packetBuffer[i][0];
-
 					seqNumOut[1] = packetBuffer[i][1];
 
 
-					gremlin(&pt, 0.7, 0, 0, 0, rand());
+					skip = gremlin(&pt, 0.3, 0.2, 0.2, 0, rand() % 100);
 					buildPacket(seqNumOut, myChecksum, tempAcknack, message);
 
-					if ((numBytes = sendto(sockfd, currPacket,
-							strlen(currPacket), 0,
-							(struct sockaddr *) &their_addr, addr_len)) == -1) {
-						perror("talker: sendto");
+					if(skip == PACKET_PASSED){
+						if ((numBytes = sendto(sockfd, currPacket,
+								strlen(currPacket), 0,
+								(struct sockaddr *) &their_addr, addr_len)) == -1) {
+							perror("talker: sendto");
+						}
+					}
+					else{
+						//puts("Packet Dropped");
 					}
 
 				}
@@ -249,18 +257,46 @@ void sendFile(char *fileName, struct addrinfo *p, int sockfd,
 
 					base = requestNumber;
 					arrayIndex = base + (numOfResets * MODULUS);
-					if (sequenceMax != maxPacket && (sequenceMax - WINDOWSIZE) < arrayIndex)
+					if (sequenceMax != maxPacket && (sequenceMax - WINDOWSIZE) != arrayIndex)
 					{
-						arrayIndex = (sequenceMax - WINDOWSIZE);
+						sequenceMax = (arrayIndex + WINDOWSIZE - 1);
+						arrayIndex = (sequenceMax - WINDOWSIZE + 1);
 					}
 					inTransit = 1;
 
-					if (strlen(packetBuffer[i]) > 0) {
+					if (strlen(packetBuffer[sequenceMax]) > 0) {
 
-						if ((numBytes = sendto(sockfd, packetBuffer[sequenceMax],
-								strlen(packetBuffer[sequenceMax]), 0,
-								(struct sockaddr *) &their_addr, addr_len)) == -1) {
-							perror("talker: sendto");
+						char message[MESSAGESIZE + 1], myChecksum[3], tempAcknack[2];
+						int skip = 0;
+
+						memset(message, 0, MESSAGESIZE + 1);
+						memset(myChecksum, 0, 3);
+						memset(tempAcknack, 0, 2);
+						memset(seqNumOut, 0, 3);
+
+
+						strncpy(message, packetBuffer[sequenceMax] + HEADERSIZE, strlen(packetBuffer[sequenceMax]) - HEADERSIZE);
+
+						pt = message;
+
+						myChecksum[0] = packetBuffer[sequenceMax][2];
+						myChecksum[1] = packetBuffer[sequenceMax][3];
+						tempAcknack[0] = packetBuffer[sequenceMax][4];
+						seqNumOut[0] = packetBuffer[sequenceMax][0];
+						seqNumOut[1] = packetBuffer[sequenceMax][1];
+
+						skip = gremlin(&pt, 0.3, 0.2, 0.2, 0, rand() % 100);
+						buildPacket(seqNumOut, myChecksum, tempAcknack, message);
+
+						if(skip == PACKET_PASSED){
+							if ((numBytes = sendto(sockfd, currPacket,
+									strlen(currPacket), 0,
+									(struct sockaddr *) &their_addr, addr_len)) == -1) {
+								perror("talker: sendto");
+							}
+						}
+						else{
+							//puts("Packet Dropped");
 						}
 
 					}
@@ -301,24 +337,29 @@ char initialSend(char message[], char getChar, FILE *fr, char seqNumOut[],
 		char checkSum[], char *acknak, int numBytes, int sockfd,
 		struct sockaddr_storage their_addr, socklen_t addr_len) {
 	memset(message, 0, MESSAGESIZE + 1);
-
+	memset(seqNumOut, 0, sizeof(seqNumOut));
 
 	int messageLength = 0;
 	while (messageLength < MESSAGESIZE && (getChar = fgetc(fr)) != EOF) {
 		message[messageLength] = getChar;
 		messageLength++;
 	}
-	//puts("Incrementing sequence#");
+
+
 	int seqNumMod = seqNum % MODULUS;
-	//puts("Casting sequence# to char array");
 	sprintf(seqNumOut, "%ld", seqNumMod);
+
+
 	if (seqNumMod < 10) {
 		seqNumOut[0] = '0';
 		seqNumOut[1] = (char) (((int) '0') + seqNumMod);
 	}
+
 	seqNum++;
 	printf("Writing sequence number %s into packet.\n", seqNumOut);
-	//puts("Building packet");
+
+	checkSum = checksum(message, checkSum);
+
 	buildPacket(seqNumOut, checkSum, acknak, message);
 	memset(packetBuffer[maxPacket], 0, sizeof(packetBuffer[maxPacket]));
 	strcpy(packetBuffer[maxPacket], currPacket);
@@ -358,7 +399,7 @@ void replyWithValidFile(struct addrinfo *p, int sockfd,
 
 void buildPacket(char *seqNum, char *checkSum, char *acknak, char *message) {
 
-	checkSum = checksum(message, checkSum);
+
 
 	//puts("\nZeroing out current packet before building.");
 	memset(currPacket, 0, sizeof(currPacket));

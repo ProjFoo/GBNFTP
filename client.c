@@ -176,9 +176,9 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 
 
 
-			int v1 = rand() % 100;
+			//int v1 = rand() % 100;
 			//int v1 = 100;
-			if (v1 > 30 && expectedSeqNum == incSeqNum && incacknak != FIN)
+			if (validChecksum == 1 && expectedSeqNum == incSeqNum && incacknak != FIN)
 			{
 				puts("Case 1. Everything is fine, nothing is wrong");
 				acknak[0] = ACK;
@@ -209,7 +209,7 @@ void receiveFile(struct addrinfo *p, int sockfd, char *fileName){
 			}
 
 
-			else if (v1 <= 70) // If checksum fails
+			else if (validChecksum == 0) // If checksum fails
 			{
 				puts("Case 2. Corrupt packet");
 
